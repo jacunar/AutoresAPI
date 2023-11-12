@@ -1,14 +1,22 @@
-﻿namespace AutoresAPI; 
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+
+namespace AutoresAPI; 
 public class Startup {
     public IConfiguration Configuration { get; }
     public Startup(IConfiguration configuration) {
         Configuration = configuration;
     }
-    
+
     public void ConfigureServices(IServiceCollection services) {
         services.AddControllers();
+        services.AddDbContext<ApplicationDbContext>(opt =>
+        opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
         services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
+        services.AddSwaggerGen(c => {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApiAutores", Version = "v1" });
+        });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
