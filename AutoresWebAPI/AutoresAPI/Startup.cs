@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Text.Json.Serialization;
 
 namespace AutoresAPI; 
 public class Startup {
@@ -9,7 +10,9 @@ public class Startup {
     }
 
     public void ConfigureServices(IServiceCollection services) {
-        services.AddControllers();
+        services.AddControllers().AddJsonOptions(x => 
+            x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
         services.AddDbContext<ApplicationDbContext>(opt =>
         opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
