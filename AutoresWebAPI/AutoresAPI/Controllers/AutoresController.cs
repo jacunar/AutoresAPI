@@ -1,4 +1,6 @@
-﻿using AutoresAPI.Entidades;
+﻿using AutoMapper;
+using AutoresAPI.DTOs;
+using AutoresAPI.Entidades;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,18 +9,45 @@ namespace AutoresAPI.Controllers;
 [Route("api/autores")]
 public class AutoresController : ControllerBase {
     private readonly ApplicationDbContext context;
+    private readonly IMapper mapper;
 
-    public AutoresController(ApplicationDbContext context) {
+    public AutoresController(ApplicationDbContext context, IMapper mapper) {
         this.context = context;
+        this.mapper = mapper;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<Autor>>> Get() {
-        return await context.Autores.Include(x => x.Libros).ToListAsync();
+        return await context.Autores.ToListAsync();
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Autor>> Get(int id) {
+        var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
+        if (autor is null)
+            return NotFound();
+
+        return autor;
+    }
+
+    [HttpGet("{nombre}")]
+    public async Task<ActionResult<Autor>> Get([FromRoute] string nombre) {
+        var autor = await context.Autores.FirstOrDefaultAsync(x => x.Nombre.Contains(nombre));
+        if (autor is null)
+            return NotFound();
+
+        return autor;
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post(Autor autor) {
+    public async Task<ActionResult> Post([FromBody] AutorCreacionDTO autorCreacionDTO) {
+        var existeAutorConElMismoNombre = await context.Autores.AnyAsync(x => x.Nombre == autorCreacionDTO.Nombre);
+        
+        if (existeAutorConElMismoNombre)
+            return BadRequest($"Ya existe un autor con el nombre {autorCreacionDTO.Nombre}");
+
+        var autor = mapper.Map<Autor>(autorCreacionDTO);
+
         context.Add(autor);
         await context.SaveChangesAsync();
         return Ok();
@@ -28,6 +57,10 @@ public class AutoresController : ControllerBase {
     public async Task<ActionResult> Put(Autor autor, int id) {
         if (autor.Id != id)
             return BadRequest("El id del autor no coinicide con el id de la URL");
+
+        var existe = await context.Autores.AnyAsync(x => x.Id == id);
+        if (!existe)
+            return NotFound();
 
         context.Update(autor);
         await context.SaveChangesAsync();

@@ -1,7 +1,10 @@
-﻿namespace AutoresAPI.Entidades; 
+﻿using AutoresAPI.Validaciones;
+using System.ComponentModel.DataAnnotations;
+
+namespace AutoresAPI.Entidades; 
 public class Libro {
     public int Id { get; set; }
+    [PrimeraLetraMayuscula]
+    [StringLength(maximumLength: 250)]
     public string Titulo { get; set; } = string.Empty;
-    public int AutorId { get; set; }
-    public Autor Autor { get; set; } = null!;
 }

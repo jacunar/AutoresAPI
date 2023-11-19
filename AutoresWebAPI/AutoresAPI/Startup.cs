@@ -14,12 +14,14 @@ public class Startup {
             x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
         services.AddDbContext<ApplicationDbContext>(opt =>
-        opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c => {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApiAutores", Version = "v1" });
         });
+
+        services.AddAutoMapper(typeof(Startup));
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
