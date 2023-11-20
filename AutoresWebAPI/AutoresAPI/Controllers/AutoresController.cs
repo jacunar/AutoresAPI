@@ -17,26 +17,26 @@ public class AutoresController : ControllerBase {
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Autor>>> Get() {
-        return await context.Autores.ToListAsync();
+    public async Task<List<AutorDTO>> Get() {
+        var autores = await context.Autores.ToListAsync();
+        return mapper.Map<List<AutorDTO>>(autores);
+
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Autor>> Get(int id) {
+    public async Task<ActionResult<AutorDTO>> Get(int id) {
         var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
         if (autor is null)
             return NotFound();
 
-        return autor;
+        return mapper.Map<AutorDTO>(autor);
     }
 
     [HttpGet("{nombre}")]
-    public async Task<ActionResult<Autor>> Get([FromRoute] string nombre) {
-        var autor = await context.Autores.FirstOrDefaultAsync(x => x.Nombre.Contains(nombre));
-        if (autor is null)
-            return NotFound();
+    public async Task<ActionResult<List<AutorDTO>>> Get([FromRoute] string nombre) {
+        var autores = await context.Autores.Where(x => x.Nombre.Contains(nombre)).ToListAsync();
 
-        return autor;
+        return mapper.Map<List<AutorDTO>>(autores);
     }
 
     [HttpPost]
