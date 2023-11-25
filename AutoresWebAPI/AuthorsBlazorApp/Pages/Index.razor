@@ -1,0 +1,50 @@
+﻿@page "/"
+
+@using AuthorsBlazorApp.Services
+@inject IAuthorService service
+@using DTOs
+
+<PageTitle>Autores</PageTitle>
+
+<div class="row" style="margin:25px;">
+    <strong>Autores</strong><hr />
+    @if (Autores is null) {
+        <div class="justify-content-center">
+            <h5>No records to show</h5>
+        </div>
+    } else {
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Autores) {
+                    <tr class="justify-content-center">
+                        <td>@user.Id</td>
+                        <td>@user.Nombre</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(Error)) {
+    <p>@Error</p>
+}
+
+@code {
+    List<AutorDTO> Autores = new List<AutorDTO>();
+    public string Error { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync() {
+        try {
+            Autores = await service.GetAuthors();
+        } catch (Exception e) {
+            Error = e.Message;
+        }        
+    }
+}
