@@ -23,13 +23,15 @@ public class AutoresController : ControllerBase {
 
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<AutorDTO>> Get(int id) {
-        var autor = await context.Autores.FirstOrDefaultAsync(x => x.Id == id);
+    [HttpGet("{id:int}", Name = "obtenerAutor")]
+    public async Task<ActionResult<AutorDTOConLibros>> Get(int id) {
+        var autor = await context.Autores
+            .Include(a => a.AutoresLibros).ThenInclude(l => l.Libro)
+            .FirstOrDefaultAsync(x => x.Id == id);
         if (autor is null)
             return NotFound();
 
-        return mapper.Map<AutorDTO>(autor);
+        return mapper.Map<AutorDTOConLibros>(autor);
     }
 
     [HttpGet("{nombre}")]
@@ -50,21 +52,23 @@ public class AutoresController : ControllerBase {
 
         context.Add(autor);
         await context.SaveChangesAsync();
-        return Ok();
+
+        var autorDTO = mapper.Map<AutorDTO>(autor);
+        return CreatedAtRoute("obtenerAutor", new { id = autor.Id }, autorDTO);
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> Put(Autor autor, int id) {
-        if (autor.Id != id)
-            return BadRequest("El id del autor no coinicide con el id de la URL");
-
+    public async Task<ActionResult> Put(AutorCreacionDTO autorCreacionDTO, int id) {
         var existe = await context.Autores.AnyAsync(x => x.Id == id);
         if (!existe)
             return NotFound();
 
+        var autor = mapper.Map<Autor>(autorCreacionDTO);
+        autor.Id = id;
+
         context.Update(autor);
         await context.SaveChangesAsync();
-        return Ok();
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
@@ -78,3 +82,5 @@ public class AutoresController : ControllerBase {
         return Ok();
     }
 }
+
+//https://lecturasdepapelazulcom.wordpress.com/2020/05/10/libros-escritos-por-varios-escritores/

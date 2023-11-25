@@ -22,12 +22,12 @@ public class LibrosController: ControllerBase {
         return mapper.Map<List<LibroDTO>>(libros);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<LibroDTO>> Get(int id) {
+    [HttpGet("{id:int}", Name = "obtenerLibro")]
+    public async Task<ActionResult<LibroDTOConAutores>> Get(int id) {
         var libro = await context.Libros
-                    //.Include(x => x.Comentarios)
+                    .Include(x => x.AutoresLibros).ThenInclude(a => a.Autor)
                     .FirstOrDefaultAsync(l => l.Id == id);
-        return mapper.Map<LibroDTO>(libro);
+        return mapper.Map<LibroDTOConAutores>(libro);
     }
 
     [HttpPost]
@@ -39,6 +39,8 @@ public class LibrosController: ControllerBase {
         var libro = mapper.Map<Libro>(libroCreacionDTO);
         context.Add(libro);
         await context.SaveChangesAsync();
-        return Ok();
+
+        var libroDTO = mapper.Map<LibroDTO>(libro);
+        return CreatedAtRoute("obtenerLibro", new { id = libro.Id }, libroDTO);
     }
 }
