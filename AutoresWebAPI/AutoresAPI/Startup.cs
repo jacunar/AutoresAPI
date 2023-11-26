@@ -11,7 +11,8 @@ public class Startup {
 
     public void ConfigureServices(IServiceCollection services) {
         services.AddControllers().AddJsonOptions(x => 
-            x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+            x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+            .AddNewtonsoftJson();
 
         services.AddDbContext<ApplicationDbContext>(opt =>
             opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));

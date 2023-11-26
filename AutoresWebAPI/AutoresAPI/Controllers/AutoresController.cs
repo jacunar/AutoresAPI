@@ -79,7 +79,7 @@ public class AutoresController : ControllerBase {
 
         context.Remove(new Autor() { Id = id });
         await context.SaveChangesAsync();
-        return Ok();
+        return NoContent();
     }
 }
 

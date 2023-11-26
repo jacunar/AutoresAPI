@@ -8,6 +8,7 @@ public class Libro {
     [PrimeraLetraMayuscula]
     [StringLength(maximumLength: 250)]
     public string Titulo { get; set; } = string.Empty;
+    public DateTime? FechaPublicacion { get; set; }
     public List<Comentario> Comentarios { get; set; } = null!;
     public List<AutorLibro> AutoresLibros { get; set; } = null!;
 }
