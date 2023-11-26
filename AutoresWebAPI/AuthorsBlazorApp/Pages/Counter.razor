@@ -1,0 +1,50 @@
+﻿@page "/counter"
+
+@using AuthorsBlazorApp.Services
+@inject IBookService service
+@using DTOs
+
+<PageTitle>Libros</PageTitle>
+
+<div class="row" style="margin:25px;">
+    <strong>Libros</strong><hr />
+    @if (Books is null) {
+        <div class="justify-content-center">
+            <h5>No records to show</h5>
+        </div>
+    } else {
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Books) {
+                    <tr class="justify-content-center">
+                        <td>@user.Id</td>
+                        <td>@user.Titulo</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (!string.IsNullOrEmpty(Error)) {
+    <p>@Error</p>
+}
+
+@code {
+    List<LibroDTO> Books = new List<LibroDTO>();
+    public string Error { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync() {
+        try {
+            Books = await service.GetBooks();
+        } catch (Exception e) {
+            Error = e.Message;
+        }
+    }
+}
