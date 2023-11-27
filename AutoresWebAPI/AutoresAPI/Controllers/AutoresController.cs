@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using AutoresAPI.DTOs;
 using AutoresAPI.Entidades;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +19,7 @@ public class AutoresController : ControllerBase {
     }
 
     [HttpGet]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<List<AutorDTO>> Get() {
         var autores = await context.Autores.ToListAsync();
         return mapper.Map<List<AutorDTO>>(autores);

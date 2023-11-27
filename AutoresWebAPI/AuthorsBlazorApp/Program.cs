@@ -8,7 +8,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<HttpClient>(s => {
-    return new HttpClient { BaseAddress = new Uri(@"https://localhost:7263/") }; 
+    return new HttpClient { BaseAddress = new Uri(builder.Configuration["baseAddress"] ?? "")}; 
 });
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<IBookService, BookService>();
