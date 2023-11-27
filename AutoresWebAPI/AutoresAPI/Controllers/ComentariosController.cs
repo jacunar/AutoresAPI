@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using AutoresAPI.DTOs;
 using AutoresAPI.Entidades;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Immutable;
@@ -11,10 +14,13 @@ namespace AutoresAPI.Controllers;
 public class ComentariosController : ControllerBase {
     private readonly ApplicationDbContext context;
     private readonly IMapper mapper;
+    private readonly UserManager<IdentityUser> userManager;
 
-    public ComentariosController(ApplicationDbContext context, IMapper mapper) {
+    public ComentariosController(ApplicationDbContext context, IMapper mapper, 
+                UserManager<IdentityUser> userManager) {
         this.context = context;
         this.mapper = mapper;
+        this.userManager = userManager;
     }
 
     [HttpGet]
@@ -39,13 +45,29 @@ public class ComentariosController : ControllerBase {
     }
 
     [HttpPost]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<ActionResult> Post(int libroId, ComentarioCreacionDTO comentarioCreacionDTO) {
+        var emailClaim = HttpContext.User.Claims.Where(c => c.Type == "email").FirstOrDefault();
+        if (emailClaim is null)
+            return BadRequest("El usuario no es válido");
+
+        string email = emailClaim.Value;
+        if (string.IsNullOrEmpty(email))
+            return BadRequest("El usuario no es válido");
+
+        var usuario = await userManager.FindByEmailAsync(email);
+        if (usuario is null)
+            return BadRequest("El usuario no es válido");
+
+        var usuarioId = usuario.Id;
+
         var existeLibro = await context.Libros.AnyAsync(x => x.Id == libroId);
         if (!existeLibro)
             return NotFound();
 
         var comentario = mapper.Map<Comentario>(comentarioCreacionDTO);
         comentario.LibroId = libroId;
+        comentario.UsuarioId = usuarioId;
         context.Add(comentario);
         await context.SaveChangesAsync();
 

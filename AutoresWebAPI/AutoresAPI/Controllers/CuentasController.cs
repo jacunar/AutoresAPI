@@ -1,4 +1,6 @@
 ﻿using AutoresAPI.DTOs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -12,10 +14,13 @@ namespace AutoresAPI.Controllers;
 public class CuentasController : ControllerBase {
     private readonly UserManager<IdentityUser> userManager;
     private readonly IConfiguration configuration;
+    private readonly SignInManager<IdentityUser> signInManager;
 
-    public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration) {
+    public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration,
+                                SignInManager<IdentityUser> signInManager) {
         this.userManager = userManager;
         this.configuration = configuration;
+        this.signInManager = signInManager;
     }
 
     [HttpPost("registrar")]
@@ -30,6 +35,33 @@ public class CuentasController : ControllerBase {
             return ConstruirToken(credencialUsuario);
         else
             return BadRequest(resultado.Errors);
+    }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<RespuestaAutenticacion>> Login(CredencialUsuario credencialUsuario) {
+        var resultado = await signInManager.PasswordSignInAsync(credencialUsuario.Email,
+                    credencialUsuario.Password, isPersistent: false, lockoutOnFailure: false);
+        if (resultado.Succeeded)
+            return ConstruirToken(credencialUsuario);
+        else
+            return BadRequest("Login incorrecto");
+    }
+
+    [HttpGet("RenoverToken")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public ActionResult<RespuestaAutenticacion> Renovar() {
+        var emailClaim = HttpContext.User.Claims.Where(c => c.Type == "email").FirstOrDefault();
+        if (emailClaim is null)
+            return BadRequest("El usuario no es válido");
+
+        string email = emailClaim.Value;
+        if (string.IsNullOrEmpty(email))
+            return BadRequest("El usuario no es válido");
+
+        var credencialUsuario = new CredencialUsuario() {
+            Email = email
+        };
+        return ConstruirToken(credencialUsuario);
     }
 
     private RespuestaAutenticacion ConstruirToken(CredencialUsuario credencialUsuario) {

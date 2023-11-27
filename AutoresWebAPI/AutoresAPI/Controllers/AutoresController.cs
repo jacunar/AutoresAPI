@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AutoresAPI.Controllers;
 [ApiController]
 [Route("api/autores")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class AutoresController : ControllerBase {
     private readonly ApplicationDbContext context;
     private readonly IMapper mapper;
@@ -19,7 +20,7 @@ public class AutoresController : ControllerBase {
     }
 
     [HttpGet]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [AllowAnonymous]
     public async Task<List<AutorDTO>> Get() {
         var autores = await context.Autores.ToListAsync();
         return mapper.Map<List<AutorDTO>>(autores);
