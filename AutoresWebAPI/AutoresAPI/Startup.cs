@@ -60,6 +60,19 @@ public class Startup {
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+        services.AddAuthorization(o => {
+            o.AddPolicy("EsAdmin", politica => politica.RequireClaim("esAdmin"));
+            o.AddPolicy("EsVendedor", politica => politica.RequireClaim("esVendedor"));
+        });        
+
+        services.AddDataProtection();
+        //services.AddTransient<HashService>();
+
+        services.AddCors(op => {
+            op.AddDefaultPolicy(builder => {
+                builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader();
+            });
+        });
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
@@ -71,6 +84,7 @@ public class Startup {
 
         app.UseHttpsRedirection();
         app.UseRouting();
+        app.UseCors();
         app.UseAuthorization();
 
         app.UseEndpoints(endpoints => {
