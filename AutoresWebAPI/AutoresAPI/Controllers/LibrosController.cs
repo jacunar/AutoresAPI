@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoresAPI.DTOs;
 using AutoresAPI.Entidades;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -103,6 +104,7 @@ public class LibrosController: ControllerBase {
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "EsAdmin")]
     public async Task<ActionResult> Delete(int id) {
         var existe = await context.Libros.AnyAsync(x => x.Id == id);
         if (!existe)

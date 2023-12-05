@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AutoresAPI.Controllers;
 [ApiController]
 [Route("api/autores")]
-[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class AutoresController : ControllerBase {
     private readonly ApplicationDbContext context;
     private readonly IMapper mapper;
@@ -76,6 +77,7 @@ public class AutoresController : ControllerBase {
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "EsAdmin")]
     public async Task<ActionResult> Delete(int id) {
         var existe = await context.Autores.AnyAsync(x => x.Id == id);
         if (!existe)

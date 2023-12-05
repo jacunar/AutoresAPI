@@ -1,4 +1,5 @@
 ﻿using AutoresAPI.DTOs;
+using AutoresAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -16,19 +17,22 @@ public class CuentasController : ControllerBase {
     private readonly UserManager<IdentityUser> userManager;
     private readonly IConfiguration configuration;
     private readonly SignInManager<IdentityUser> signInManager;
+    private readonly HashService hashService;
     private readonly IDataProtector dataProtector;
 
     public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration,
                                 SignInManager<IdentityUser> signInManager,
-                                IDataProtectionProvider dataProtectionProvider) {
+                                IDataProtectionProvider dataProtectionProvider,
+                                HashService hashService) {
         this.userManager = userManager;
         this.configuration = configuration;
         this.signInManager = signInManager;
+        this.hashService = hashService;
         dataProtector = dataProtectionProvider.CreateProtector("clave_unica_y_secreta");
     }
 
     [HttpGet("encriptar")]
-    public ActionResult Encriptar() {
+    private ActionResult Encriptar() {
         string textoPlano = "Josue Acuña";
         var textoCifrado = dataProtector.Protect(textoPlano);
         var textoDesencriptado = dataProtector.Unprotect(textoCifrado);
@@ -41,7 +45,7 @@ public class CuentasController : ControllerBase {
     }
 
     [HttpGet("encriptarPorTiempo")]
-    public ActionResult EncriptarPorTiempo() {
+    private ActionResult EncriptarPorTiempo() {
         var protectorPorTiempoLimitado = dataProtector.ToTimeLimitedDataProtector();
 
         string textoPlano = "Josue Acuña";
@@ -137,5 +141,15 @@ public class CuentasController : ControllerBase {
             return NoContent();
         } else
             return BadRequest("El usuario no existe");
+    }
+
+    [HttpGet("hash/{textoPlano}")]
+    private ActionResult RealizarHash(string textoPlano) {
+        var resultado1 = hashService.Hash(textoPlano);
+        var resultado2 = hashService.Hash(textoPlano);
+
+        return Ok(new {
+            textoPlano = textoPlano, resultado1 = resultado1, resultado2 = resultado2
+        });
     }
 }

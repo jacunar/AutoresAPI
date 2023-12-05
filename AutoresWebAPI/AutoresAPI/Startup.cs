@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoresAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -60,13 +61,14 @@ public class Startup {
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
         services.AddAuthorization(o => {
             o.AddPolicy("EsAdmin", politica => politica.RequireClaim("esAdmin"));
             o.AddPolicy("EsVendedor", politica => politica.RequireClaim("esVendedor"));
         });        
 
         services.AddDataProtection();
-        //services.AddTransient<HashService>();
+        services.AddTransient<HashService>();
 
         services.AddCors(op => {
             op.AddDefaultPolicy(builder => {
