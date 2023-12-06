@@ -20,7 +20,7 @@ public class AutoresController : ControllerBase {
         this.mapper = mapper;
     }
 
-    [HttpGet]
+    [HttpGet(Name = "obtenerAutores")]
     [AllowAnonymous]
     public async Task<List<AutorDTO>> Get() {
         var autores = await context.Autores.ToListAsync();
@@ -39,14 +39,14 @@ public class AutoresController : ControllerBase {
         return mapper.Map<AutorDTOConLibros>(autor);
     }
 
-    [HttpGet("{nombre}")]
+    [HttpGet("{nombre}", Name = "obtenerAutorPorNombre")]
     public async Task<ActionResult<List<AutorDTO>>> Get([FromRoute] string nombre) {
         var autores = await context.Autores.Where(x => x.Nombre.Contains(nombre)).ToListAsync();
 
         return mapper.Map<List<AutorDTO>>(autores);
     }
 
-    [HttpPost]
+    [HttpPost(Name = "crearAutor")]
     public async Task<ActionResult> Post([FromBody] AutorCreacionDTO autorCreacionDTO) {
         var existeAutorConElMismoNombre = await context.Autores.AnyAsync(x => x.Nombre == autorCreacionDTO.Nombre);
         
@@ -62,7 +62,7 @@ public class AutoresController : ControllerBase {
         return CreatedAtRoute("obtenerAutor", new { id = autor.Id }, autorDTO);
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}", Name = "actualizarAutor")]
     public async Task<ActionResult> Put(AutorCreacionDTO autorCreacionDTO, int id) {
         var existe = await context.Autores.AnyAsync(x => x.Id == id);
         if (!existe)
@@ -76,7 +76,7 @@ public class AutoresController : ControllerBase {
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete("{id:int}", Name = "borrarAutor")]
     [Authorize(Policy = "EsAdmin")]
     public async Task<ActionResult> Delete(int id) {
         var existe = await context.Autores.AnyAsync(x => x.Id == id);

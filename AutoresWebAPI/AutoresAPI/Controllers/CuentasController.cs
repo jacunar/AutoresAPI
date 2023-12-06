@@ -60,7 +60,7 @@ public class CuentasController : ControllerBase {
         });
     }
 
-    [HttpPost("registrar")]
+    [HttpPost("registrar", Name = "registrarUsuario")]
     public async Task<ActionResult<RespuestaAutenticacion>> Registrar(CredencialUsuario credencialUsuario) {
         var usuario = new IdentityUser {
             UserName = credencialUsuario.Email,
@@ -74,7 +74,7 @@ public class CuentasController : ControllerBase {
             return BadRequest(resultado.Errors);
     }
 
-    [HttpPost("login")]
+    [HttpPost("login", Name = "loginUsuario")]
     public async Task<ActionResult<RespuestaAutenticacion>> Login(CredencialUsuario credencialUsuario) {
         var resultado = await signInManager.PasswordSignInAsync(credencialUsuario.Email,
                     credencialUsuario.Password, isPersistent: false, lockoutOnFailure: false);
@@ -84,7 +84,7 @@ public class CuentasController : ControllerBase {
             return BadRequest("Login incorrecto");
     }
 
-    [HttpGet("RenovarToken")]
+    [HttpGet("RenovarToken", Name = "renovarToken")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<ActionResult<RespuestaAutenticacion>> Renovar() {
         var emailClaim = HttpContext.User.Claims.Where(c => c.Type == "email").FirstOrDefault();
@@ -123,7 +123,7 @@ public class CuentasController : ControllerBase {
         };
     }
 
-    [HttpPost("HacerAdmin")]
+    [HttpPost("HacerAdmin", Name = "hacerAdmin")]
     public async Task<ActionResult> HacerAdmin(EditarAdminDTO editarAdminDTO) {
         var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
         if (usuario != null) {
@@ -133,7 +133,7 @@ public class CuentasController : ControllerBase {
             return BadRequest("El usuario no existe");
     }
 
-    [HttpPost("RemoverAdmin")]
+    [HttpPost("RemoverAdmin", Name = "removerAdmin")]
     public async Task<ActionResult> RemoverAdmin(EditarAdminDTO editarAdminDTO) {
         var usuario = await userManager.FindByEmailAsync(editarAdminDTO.Email);
         if (usuario != null) {
