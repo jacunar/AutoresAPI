@@ -1,6 +1,8 @@
 ﻿using AutoresAPI.Services;
+using AutoresAPI.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -37,7 +39,7 @@ public class Startup {
 
         services.AddSwaggerGen(c => {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApiAutores", Version = "v1" });
-
+            c.OperationFilter<AgregarParametroHATEOAS>();
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
                 Name = "Authorization",
                 Type = SecuritySchemeType.ApiKey,
@@ -75,6 +77,10 @@ public class Startup {
                 builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader();
             });
         });
+
+        services.AddTransient<GeneradorEnlaces>();
+        services.AddTransient<HATEOASAutorFilterAttribute>();
+        services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {

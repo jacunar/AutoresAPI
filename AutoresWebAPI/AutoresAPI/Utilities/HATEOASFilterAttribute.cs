@@ -9,11 +9,11 @@ public class HATEOASFilterAttribute : ResultFilterAttribute {
         if(!EsRespuestaExitosa(resultado)) 
             return false;
         
-        var cabecera = context.HttpContext.Request.Headers["incluirHATEOAS"];
+        var cabecera = context.HttpContext.Request.Headers["incluirHATEOAS"]; 
         if (cabecera.Count == 0)
             return false;
 
-        var valor = cabecera[0] ?? "";
+        var valor = cabecera[0];
         if (!valor.Equals("Y", StringComparison.InvariantCultureIgnoreCase))
             return false;
 

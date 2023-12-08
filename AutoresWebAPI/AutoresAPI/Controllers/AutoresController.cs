@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoresAPI.DTOs;
 using AutoresAPI.Entidades;
+using AutoresAPI.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,41 +15,24 @@ namespace AutoresAPI.Controllers;
 public class AutoresController : ControllerBase {
     private readonly ApplicationDbContext context;
     private readonly IMapper mapper;
-    private readonly IAuthorizationService authorizationService;
 
     public AutoresController(ApplicationDbContext context, IMapper mapper,
                 IAuthorizationService authorizationService) {
         this.context = context;
         this.mapper = mapper;
-        this.authorizationService = authorizationService;
     }
 
     [HttpGet(Name = "obtenerAutores")]
     [AllowAnonymous]
-    public async Task<IActionResult> Get([FromQuery] bool incluirHATEOAS = true) {
+    [ServiceFilter(typeof(HATEOASAutorFilterAttribute))]
+    public async Task<ActionResult<List<AutorDTO>>> Get() {
         var autores = await context.Autores.ToListAsync();
-        var dtos = mapper.Map<List<AutorDTO>>(autores);
-
-        if (incluirHATEOAS) {
-            var esAdmin = await authorizationService.AuthorizeAsync(User, "esAdmin");
-
-            dtos.ForEach(x => GenerarEnlaces(x, esAdmin.Succeeded));
-
-            var resultado = new ColeccionDeRecursos<AutorDTO> { Valores = dtos };
-
-            resultado.Enlaces.Add(new DatoHATEOAS(enlace: Url.Link("obtenerAutores", new { }) ?? "",
-                        descripcion: "self", metodo: "GET"));
-            if (esAdmin.Succeeded) {
-                resultado.Enlaces.Add(new DatoHATEOAS(enlace: Url.Link("crearAutor", new { }) ?? "",
-                            descripcion: "crear-autor", metodo: "POST"));
-            }
-            return Ok(resultado);
-        }
-        return Ok(dtos);
+        return mapper.Map<List<AutorDTO>>(autores);
     }
 
     [HttpGet("{id:int}", Name = "obtenerAutor")]
     [AllowAnonymous]
+    [ServiceFilter(typeof(HATEOASAutorFilterAttribute))]
     public async Task<ActionResult<AutorDTOConLibros>> Get(int id) {
         var autor = await context.Autores
             .Include(a => a.AutoresLibros).ThenInclude(l => l.Libro)
@@ -57,14 +41,11 @@ public class AutoresController : ControllerBase {
             return NotFound();
 
         var dto = mapper.Map<AutorDTOConLibros>(autor);
-        var esAdmin = await authorizationService.AuthorizeAsync(User, "esAdmin");
-        GenerarEnlaces(dto, esAdmin.Succeeded);
-
         return dto;
     }
     
     [HttpGet("{nombre}", Name = "obtenerAutorPorNombre")]
-    public async Task<ActionResult<List<AutorDTO>>> Get([FromRoute] string nombre) {
+    public async Task<ActionResult<List<AutorDTO>>> GetPorNombre([FromRoute] string nombre) {
         var autores = await context.Autores.Where(x => x.Nombre.Contains(nombre)).ToListAsync();
 
         return mapper.Map<List<AutorDTO>>(autores);
