@@ -14,13 +14,13 @@ public class HATEOASFilterAttribute : ResultFilterAttribute {
             return false;
 
         var valor = cabecera[0];
-        if (!valor.Equals("Y", StringComparison.InvariantCultureIgnoreCase))
+        if (valor is null || !valor.Equals("Y", StringComparison.InvariantCultureIgnoreCase))
             return false;
 
         return true;
     }
 
-    private bool EsRespuestaExitosa(ObjectResult result) {
+    private static bool EsRespuestaExitosa(ObjectResult result) {
         if (result == null || result.Value == null) {
             return false;
         }

@@ -1,15 +1,11 @@
-﻿using AutoMapper;
-using AutoresAPI.DTOs;
-using AutoresAPI.Entidades;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Immutable;
 
-namespace AutoresAPI.Controllers; 
-[Route("api/libros/{libroId:int}/comentarios")]
+namespace AutoresAPI.Controllers.V1;
+[Route("api/v1/libros/{libroId:int}/comentarios")]
 [ApiController]
 public class ComentariosController : ControllerBase {
     private readonly ApplicationDbContext context;
@@ -24,13 +20,15 @@ public class ComentariosController : ControllerBase {
     }
 
     [HttpGet(Name = "obtenerComentariosLibro")]
-    public async Task<ActionResult<List<ComentarioDTO>>> Get(int libroId) {
+    public async Task<ActionResult<List<ComentarioDTO>>> Get(int libroId,
+            [FromQuery] PaginationDTO paginationDTO) {
         var existeLibro = await context.Libros.AnyAsync(x => x.Id == libroId);
         if (!existeLibro)
             return NotFound();
 
-        var comentarios = await context.Comentarios
-                .Where(x => x.LibroId == libroId).ToListAsync();
+        var queryable = context.Comentarios.Where(x => x.LibroId == libroId).AsQueryable();
+        await HttpContext.InsertPaginationParameterInHeader(queryable);
+        var comentarios = await queryable.OrderBy(x => x.Id).Page(paginationDTO).ToListAsync();
 
         return mapper.Map<List<ComentarioDTO>>(comentarios);
     }
@@ -72,7 +70,7 @@ public class ComentariosController : ControllerBase {
         await context.SaveChangesAsync();
 
         var comentarioDTO = mapper.Map<ComentarioDTO>(comentario);
-        return CreatedAtRoute("obtenerComentario", new { id = comentario.Id, libroId = libroId }, comentarioDTO);
+        return CreatedAtRoute("obtenerComentario", new { id = comentario.Id, libroId }, comentarioDTO);
     }
 
     [HttpPut("{id:int}", Name = "actualizarComentario")]

@@ -1,10 +1,9 @@
-﻿using AutoresAPI.DTOs;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AutoresAPI.Controllers;
-[Route("api")]
+namespace AutoresAPI.Controllers.V1;
+[Route("api/v1")]
 [ApiController]
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class RootController : ControllerBase {

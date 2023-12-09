@@ -16,7 +16,7 @@ public class AuthorService : IAuthorService {
 
     public async Task<List<AutorDTO>> GetAuthors() {
         List<AutorDTO> autors = new List<AutorDTO>();
-        var apiName = "api/autores";
+        var apiName = "api/v1/autores";
         var httpResponse = await _httpClient.GetAsync(apiName);
 
         if (httpResponse.IsSuccessStatusCode) {

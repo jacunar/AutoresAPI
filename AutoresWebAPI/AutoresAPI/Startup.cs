@@ -1,16 +1,16 @@
-﻿using AutoresAPI.Services;
-using AutoresAPI.Utilities;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace AutoresAPI; 
+[assembly: ApiConventionType(typeof(DefaultApiConventions))]
+namespace AutoresAPI;
 public class Startup {
     public IConfiguration Configuration { get; }
     
@@ -20,9 +20,10 @@ public class Startup {
     }
 
     public void ConfigureServices(IServiceCollection services) {
-        services.AddControllers()
-            .AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
-            .AddNewtonsoftJson();
+        services.AddControllers(o => {
+            o.Conventions.Add(new SwaggerGroupByVersion());
+        }).AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+          .AddNewtonsoftJson();
 
         services.AddDbContext<ApplicationDbContext>(opt =>
             opt.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
@@ -38,8 +39,13 @@ public class Startup {
             });
 
         services.AddSwaggerGen(c => {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApiAutores", Version = "v1" });
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "API Autores", Version = "v1",
+                Description = "Web API Autores y Libros"
+            });
+            c.SwaggerDoc("v2", new OpenApiInfo { Title = "API Autores", Version = "v2" });
             c.OperationFilter<AgregarParametroHATEOAS>();
+            c.OperationFilter<AddParameterXVersion>();
+
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
                 Name = "Authorization",
                 Type = SecuritySchemeType.ApiKey,
@@ -57,6 +63,10 @@ public class Startup {
                     }, new string[]{} 
                 }
             });
+
+            var archivoXML = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var rutaXML = Path.Combine(AppContext.BaseDirectory, archivoXML);
+            c.IncludeXmlComments(rutaXML);
         });
 
         services.AddAutoMapper(typeof(Startup));
@@ -74,7 +84,8 @@ public class Startup {
 
         services.AddCors(op => {
             op.AddDefaultPolicy(builder => {
-                builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader();
+                builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader()
+                    .WithExposedHeaders(new string[] { "cantidadTotalRegistros" });
             });
         });
 
@@ -87,14 +98,16 @@ public class Startup {
         // Configure the HTTP request pipeline.
         if (env.IsDevelopment()) {
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c => {
+                c.SwaggerEndpoint("../swagger/v1/swagger.json", "API Autores v1");
+                c.SwaggerEndpoint("../swagger/v2/swagger.json", "API Autores v2");
+            });
         }
 
         app.UseHttpsRedirection();
         app.UseRouting();
         app.UseCors();
         app.UseAuthorization();
-
         app.UseEndpoints(endpoints => {
             endpoints.MapControllers();
         });

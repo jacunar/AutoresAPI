@@ -1,18 +1,15 @@
 ﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace AutoresAPI.Utilities;
-public class AgregarParametroHATEOAS : IOperationFilter {
+namespace AutoresAPI.Utilities; 
+public class AddParameterXVersion: IOperationFilter {
     public void Apply(OpenApiOperation operation, OperationFilterContext context) {
-        if (context.ApiDescription.HttpMethod != "GET")
-            return;
-
         operation.Parameters ??= new List<OpenApiParameter>();
 
         operation.Parameters.Add(new OpenApiParameter {
-            Name = "incluirHATEOAS",
+            Name = "x-version",
             In = ParameterLocation.Header,
-            Required = false
+            Required = true
         });
     }
 }

@@ -15,7 +15,7 @@ public class BookService : IBookService {
 
     public async Task<List<LibroDTO>> GetBooks() {
         List<LibroDTO> books = new List<LibroDTO>();
-        var apiName = "api/libros";
+        var apiName = "api/v1/libros";
         var httpResponse = await _client.GetAsync(apiName);
 
         if (httpResponse.IsSuccessStatusCode) {

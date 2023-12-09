@@ -1,6 +1,4 @@
-﻿using AutoresAPI.DTOs;
-using AutoresAPI.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -10,8 +8,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace AutoresAPI.Controllers; 
-[Route("api/cuentas")]
+namespace AutoresAPI.Controllers.V1; 
+[Route("api/v1/cuentas")]
 [ApiController]
 public class CuentasController : ControllerBase {
     private readonly UserManager<IdentityUser> userManager;
@@ -38,9 +36,7 @@ public class CuentasController : ControllerBase {
         var textoDesencriptado = dataProtector.Unprotect(textoCifrado);
 
         return Ok(new {  
-            textoPlano = textoPlano,
-            textoCifrado = textoCifrado,
-            textoDesencriptado = textoDesencriptado
+            textoPlano, textoCifrado, textoDesencriptado
         });
     }
 
@@ -54,9 +50,7 @@ public class CuentasController : ControllerBase {
         var textoDesencriptado = protectorPorTiempoLimitado.Unprotect(textoCifrado);
 
         return Ok(new {
-            textoPlano = textoPlano,
-            textoCifrado = textoCifrado,
-            textoDesencriptado = textoDesencriptado
+            textoPlano, textoCifrado, textoDesencriptado
         });
     }
 
@@ -101,26 +95,29 @@ public class CuentasController : ControllerBase {
         return await ConstruirToken(credencialUsuario);
     }
 
-    private async Task<RespuestaAutenticacion> ConstruirToken(CredencialUsuario credencialUsuario) {
+    private async Task<ActionResult<RespuestaAutenticacion>> ConstruirToken(CredencialUsuario credencialUsuario) {
         var claims = new List<Claim> {
-            new Claim("email", credencialUsuario.Email)
+            new("email", credencialUsuario.Email)
         };
 
         var usuario = await userManager.FindByEmailAsync(credencialUsuario.Email);
-        var claimsDB = await userManager.GetClaimsAsync(usuario);
-        claims.AddRange(claimsDB);
+        if (usuario != null) {
+            var claimsDB = await userManager.GetClaimsAsync(usuario);
+            claims.AddRange(claimsDB);
 
-        var llave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["llavejwt"] ?? ""));
-        var creds = new SigningCredentials(llave, SecurityAlgorithms.HmacSha256);
-        var expiracion = DateTime.UtcNow.AddHours(12);
+            var llave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["llavejwt"] ?? ""));
+            var creds = new SigningCredentials(llave, SecurityAlgorithms.HmacSha256);
+            var expiracion = DateTime.UtcNow.AddHours(12);
 
-        var securityToken = new JwtSecurityToken(issuer: null, audience: null, claims: claims,
-                            expires: expiracion, signingCredentials: creds);
+            var securityToken = new JwtSecurityToken(issuer: null, audience: null, claims: claims,
+                                expires: expiracion, signingCredentials: creds);
 
-        return new RespuestaAutenticacion() {
-            Token = new JwtSecurityTokenHandler().WriteToken(securityToken),
-            Expiracion = expiracion
-        };
+            return new RespuestaAutenticacion() {
+                Token = new JwtSecurityTokenHandler().WriteToken(securityToken),
+                Expiracion = expiracion
+            };
+        } else
+            return BadRequest("El usuario no existe");
     }
 
     [HttpPost("HacerAdmin", Name = "hacerAdmin")]
@@ -149,7 +146,7 @@ public class CuentasController : ControllerBase {
         var resultado2 = hashService.Hash(textoPlano);
 
         return Ok(new {
-            textoPlano = textoPlano, resultado1 = resultado1, resultado2 = resultado2
+            textoPlano, resultado1, resultado2
         });
     }
 }
