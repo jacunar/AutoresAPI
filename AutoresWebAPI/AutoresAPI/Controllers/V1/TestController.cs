@@ -5,6 +5,6 @@ public class TestController : ControllerBase {
     [HttpGet(Name = "test")]
     public async Task<string> Get() {
         await Task.CompletedTask;
-        return "El Web API está funcionando";
+        return "El Web API está funcionando. Go ahead!";
     }
 }
