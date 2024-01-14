@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using AutoresAPI.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -45,6 +45,7 @@ public class Startup {
             c.SwaggerDoc("v2", new OpenApiInfo { Title = "API Autores", Version = "v2" });
             c.OperationFilter<AgregarParametroHATEOAS>();
             c.OperationFilter<AddParameterXVersion>();
+            c.OperationFilter<AddParameterLlaveApi>();
 
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
                 Name = "Authorization",
@@ -70,7 +71,7 @@ public class Startup {
         });
 
         services.AddAutoMapper(typeof(Startup));
-        services.AddIdentity<IdentityUser, IdentityRole>()
+        services.AddIdentity<Usuario, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
@@ -81,17 +82,17 @@ public class Startup {
 
         services.AddDataProtection();
         services.AddTransient<HashService>();
-
         services.AddCors(op => {
             op.AddDefaultPolicy(builder => {
-                builder.WithOrigins("").AllowAnyMethod().AllowAnyHeader()
-                    .WithExposedHeaders(new string[] { "cantidadTotalRegistros" });
+                builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
             });
         });
 
         services.AddTransient<GeneradorEnlaces>();
         services.AddTransient<HATEOASAutorFilterAttribute>();
         services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+        services.AddScoped<ServicioLlaves>();
+        services.AddHostedService<FacturasHostedService>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
@@ -106,6 +107,7 @@ public class Startup {
         app.UseHttpsRedirection();
         app.UseRouting();
         app.UseCors();
+        app.UseLimitarPeticiones();
         app.UseAuthorization();
         app.UseEndpoints(endpoints => {
             endpoints.MapControllers();

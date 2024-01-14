@@ -1,8 +1,4 @@
-﻿using AutoMapper;
-using AutoresAPI.DTOs;
-using AutoresAPI.Entidades;
-
-namespace AutoresAPI.Utilities;
+﻿namespace AutoresAPI.Utilities;
 public class AutoMapperProfiles : Profile {
     public AutoMapperProfiles() {
         CreateMap<AutorCreacionDTO, Autor>();
@@ -19,6 +15,9 @@ public class AutoMapperProfiles : Profile {
 
         CreateMap<ComentarioCreacionDTO, Comentario>();
         CreateMap<Comentario, ComentarioDTO>();
+        CreateMap<LlaveAPI, LlaveDTO>();
+        CreateMap<RestriccionDominio, RestriccionDominioDTO>();
+        CreateMap<RestriccionIP, RestriccionIPDTO>();
     }
     private List<AutorDTO> MapLibroDTOAutores(Libro libro, LibroDTOConAutores libroDTO) {
         var resultado = new List<AutorDTO>();

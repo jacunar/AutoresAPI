@@ -1,18 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutoresAPI.Controllers.V1;
 [Route("api/v1/libros/{libroId:int}/comentarios")]
 [ApiController]
-public class ComentariosController : ControllerBase {
+public class ComentariosController : CustomBaseController {
     private readonly ApplicationDbContext context;
     private readonly IMapper mapper;
-    private readonly UserManager<IdentityUser> userManager;
+    private readonly UserManager<Usuario> userManager;
 
     public ComentariosController(ApplicationDbContext context, IMapper mapper, 
-                UserManager<IdentityUser> userManager) {
+                UserManager<Usuario> userManager) {
         this.context = context;
         this.mapper = mapper;
         this.userManager = userManager;

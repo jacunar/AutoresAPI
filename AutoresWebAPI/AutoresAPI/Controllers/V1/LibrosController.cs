@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.JsonPatch;
 
 namespace AutoresAPI.Controllers.V1;
 [ApiController]
 [Route("api/v1/libros")]
-public class LibrosController: ControllerBase {
+public class LibrosController: CustomBaseController {
     private readonly ApplicationDbContext context;
     private readonly IMapper mapper;
 

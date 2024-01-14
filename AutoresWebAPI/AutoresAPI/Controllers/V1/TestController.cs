@@ -1,7 +1,8 @@
 ﻿namespace AutoresAPI.Controllers.V1; 
-[Route("api/test")]
+
+[Route("api/v1/test")]
 [ApiController]
-public class TestController : ControllerBase {
+public class TestController : CustomBaseController {
     [HttpGet(Name = "test")]
     public async Task<string> Get() {
         await Task.CompletedTask;

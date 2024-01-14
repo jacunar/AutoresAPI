@@ -1,70 +1,39 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace AutoresAPI.Controllers.V1; 
+namespace AutoresAPI.Controllers.V1;
 [Route("api/v1/cuentas")]
 [ApiController]
-public class CuentasController : ControllerBase {
-    private readonly UserManager<IdentityUser> userManager;
+public class CuentasController : CustomBaseController {
+    private readonly UserManager<Usuario> userManager;
     private readonly IConfiguration configuration;
-    private readonly SignInManager<IdentityUser> signInManager;
-    private readonly HashService hashService;
-    private readonly IDataProtector dataProtector;
+    private readonly SignInManager<Usuario> signInManager;
+    private readonly ServicioLlaves servicioLlaves;
 
-    public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration,
-                                SignInManager<IdentityUser> signInManager,
-                                IDataProtectionProvider dataProtectionProvider,
-                                HashService hashService) {
+    public CuentasController(UserManager<Usuario> userManager, IConfiguration configuration,
+                                SignInManager<Usuario> signInManager, ServicioLlaves servicioLlaves) {
         this.userManager = userManager;
         this.configuration = configuration;
         this.signInManager = signInManager;
-        this.hashService = hashService;
-        dataProtector = dataProtectionProvider.CreateProtector("clave_unica_y_secreta");
+        this.servicioLlaves = servicioLlaves;
     }
-
-    [HttpGet("encriptar")]
-    private ActionResult Encriptar() {
-        string textoPlano = "Josue Acuña";
-        var textoCifrado = dataProtector.Protect(textoPlano);
-        var textoDesencriptado = dataProtector.Unprotect(textoCifrado);
-
-        return Ok(new {  
-            textoPlano, textoCifrado, textoDesencriptado
-        });
-    }
-
-    [HttpGet("encriptarPorTiempo")]
-    private ActionResult EncriptarPorTiempo() {
-        var protectorPorTiempoLimitado = dataProtector.ToTimeLimitedDataProtector();
-
-        string textoPlano = "Josue Acuña";
-        var textoCifrado = protectorPorTiempoLimitado.Protect(textoPlano, lifetime: TimeSpan.FromSeconds(6));
-        Thread.Sleep(7000);
-        var textoDesencriptado = protectorPorTiempoLimitado.Unprotect(textoCifrado);
-
-        return Ok(new {
-            textoPlano, textoCifrado, textoDesencriptado
-        });
-    }
-
+        
     [HttpPost("registrar", Name = "registrarUsuario")]
     public async Task<ActionResult<RespuestaAutenticacion>> Registrar(CredencialUsuario credencialUsuario) {
-        var usuario = new IdentityUser {
+        var usuario = new Usuario {
             UserName = credencialUsuario.Email,
             Email = credencialUsuario.Email
         };
         var resultado = await userManager.CreateAsync(usuario, credencialUsuario.Password);
 
-        if (resultado.Succeeded)
-            return await ConstruirToken(credencialUsuario);
-        else
+        if (resultado.Succeeded) {
+            await servicioLlaves.CrearLLave(usuario.Id, TipoLlave.Gratuita);
+            return await ConstruirToken(credencialUsuario, usuario.Id);
+        } else
             return BadRequest(resultado.Errors);
     }
 
@@ -72,9 +41,10 @@ public class CuentasController : ControllerBase {
     public async Task<ActionResult<RespuestaAutenticacion>> Login(CredencialUsuario credencialUsuario) {
         var resultado = await signInManager.PasswordSignInAsync(credencialUsuario.Email,
                     credencialUsuario.Password, isPersistent: false, lockoutOnFailure: false);
-        if (resultado.Succeeded)
-            return await ConstruirToken(credencialUsuario);
-        else
+        if (resultado.Succeeded) {
+            var usuario = await userManager.FindByEmailAsync(credencialUsuario.Email) ?? null!;
+            return await ConstruirToken(credencialUsuario, usuario.Id);
+        } else
             return BadRequest("Login incorrecto");
     }
 
@@ -89,15 +59,20 @@ public class CuentasController : ControllerBase {
         if (string.IsNullOrEmpty(email))
             return BadRequest("El usuario no es válido");
 
+        var idClaim = HttpContext.User.Claims.Where(c => c.Type == "id").FirstOrDefault();
+        var usuarioId = idClaim?.Value;
+
         var credencialUsuario = new CredencialUsuario() {
             Email = email
         };
-        return await ConstruirToken(credencialUsuario);
+        return await ConstruirToken(credencialUsuario, usuarioId ?? "");
     }
 
-    private async Task<ActionResult<RespuestaAutenticacion>> ConstruirToken(CredencialUsuario credencialUsuario) {
+    private async Task<ActionResult<RespuestaAutenticacion>> 
+            ConstruirToken(CredencialUsuario credencialUsuario, string usuarioId) {
         var claims = new List<Claim> {
-            new("email", credencialUsuario.Email)
+            new("email", credencialUsuario.Email),
+            new("id", usuarioId)
         };
 
         var usuario = await userManager.FindByEmailAsync(credencialUsuario.Email);
@@ -138,15 +113,5 @@ public class CuentasController : ControllerBase {
             return NoContent();
         } else
             return BadRequest("El usuario no existe");
-    }
-
-    [HttpGet("hash/{textoPlano}")]
-    private ActionResult RealizarHash(string textoPlano) {
-        var resultado1 = hashService.Hash(textoPlano);
-        var resultado2 = hashService.Hash(textoPlano);
-
-        return Ok(new {
-            textoPlano, resultado1, resultado2
-        });
     }
 }

@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutoresAPI.Controllers.V1;
 [ApiController]
@@ -8,7 +6,7 @@ namespace AutoresAPI.Controllers.V1;
 [Route("api/autores")]
 [HeaderIsPresent("x-version", "1")]
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-public class AutoresController : ControllerBase {
+public class AutoresController : CustomBaseController {
     private readonly ApplicationDbContext context;
     private readonly IMapper mapper;
 

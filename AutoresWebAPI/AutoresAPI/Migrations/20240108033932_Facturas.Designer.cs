@@ -4,6 +4,7 @@ using AutoresAPI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoresAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240108033932_Facturas")]
+    partial class Facturas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,7 +40,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Autores", (string)null);
+                    b.ToTable("Autores");
 
                     b.HasData(
                         new
@@ -92,7 +95,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasIndex("LibroId");
 
-                    b.ToTable("AutoresLibros", (string)null);
+                    b.ToTable("AutoresLibros");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.Comentario", b =>
@@ -120,7 +123,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Comentarios", (string)null);
+                    b.ToTable("Comentarios");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.Factura", b =>
@@ -151,7 +154,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Facturas", (string)null);
+                    b.ToTable("Facturas");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.FacturaEmitida", b =>
@@ -170,7 +173,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FacturasEmitidas", (string)null);
+                    b.ToTable("FacturasEmitidas");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.Libro", b =>
@@ -191,7 +194,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Libros", (string)null);
+                    b.ToTable("Libros");
 
                     b.HasData(
                         new
@@ -256,7 +259,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("LlavesAPI", (string)null);
+                    b.ToTable("LlavesAPI");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.Peticion", b =>
@@ -280,7 +283,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasIndex("LlaveAPIId");
 
-                    b.ToTable("Peticiones", (string)null);
+                    b.ToTable("Peticiones");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.RestriccionDominio", b =>
@@ -302,7 +305,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasIndex("LlaveId");
 
-                    b.ToTable("RestriccionesDominio", (string)null);
+                    b.ToTable("RestriccionesDominio");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.RestriccionIP", b =>
@@ -324,7 +327,7 @@ namespace AutoresAPI.Migrations
 
                     b.HasIndex("LlaveId");
 
-                    b.ToTable("RestriccionesIP", (string)null);
+                    b.ToTable("RestriccionesIP");
                 });
 
             modelBuilder.Entity("AutoresAPI.Entidades.Usuario", b =>
